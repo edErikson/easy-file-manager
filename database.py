@@ -39,7 +39,7 @@ def insert_data(data):
 
 
 def db_search(search_str=''):
-    search_sql = f"SELECT file_path FROM file_paths WHERE file_path LIKE'%{search_str}%'"
+    search_sql = "SELECT file_path FROM file_paths WHERE file_path LIKE'%%%s%%'" % search_str
     return db_connection(search_sql, receive=True)
 
 
