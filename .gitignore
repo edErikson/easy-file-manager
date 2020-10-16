@@ -3,3 +3,6 @@ __pycache__/
 *.db
 /.idea
 /venv
+.ipynb_checkpoints
+Untitled.ipynb
+debug.log
