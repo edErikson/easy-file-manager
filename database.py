@@ -39,8 +39,13 @@ def insert_data(data):
 
 
 def db_search(search_str=''):
-    search_sql = "SELECT file_path FROM file_paths WHERE file_path LIKE'%%%s%%'" % search_str
+    search_sql = "SELECT id, file_path FROM file_paths WHERE file_path LIKE'%%%s%%'" % search_str
     return db_connection(search_sql, receive=True)
+
+
+def db_delete_record(id):
+    deletion_sql = "DELETE FROM file_paths WHERE id=?"
+    return db_connection(deletion_sql, data=(id,))
 
 
 def get_column_names():
