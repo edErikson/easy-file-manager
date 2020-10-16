@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from services import get_file_list, get_folder_counter, open_path
-from database import db_search, insert_data, first_time_db
+from database import db_search, insert_data, first_time_db, db_delete_record
 
 FONTS_FOLDER = ('Arial', 14)
 FONTS_SEARCH = ('Arial', 13)
@@ -61,35 +61,48 @@ class ListViewer(tk.Listbox):
 
     def open_path(self):
         file_path = self.get_current_selection()
-        open_path(file_path)
+        open_path(file_path[1])
 
     def open_file_notepad(self):
         file_path = self.get_current_selection()
-        if isinstance(file_path, str):
-            open_path(file_path, notepad=True)
+        if isinstance(file_path, tuple):
+            open_path(file_path[1], notepad=True)
         else:
             for path in file_path:
-                open_path(path, notepad=True)
+                open_path(path[1], notepad=True)
 
     def print_selection(self):
         selected_items = self.get_current_selection()
         top = tk.Toplevel()
-        selection_list = ListViewer(top)
+        selection_list = SelectedList(top)
         selection_list.grid(column=0, row=5, sticky='nsew')
 
         if isinstance(selected_items, list):
-            max_len_str = max(selected_items, key=len)
-            selection_list.config(width=len(max_len_str))
+            max_len_str = 60
             for item in selected_items:
+                if len(item[1]) > max_len_str:
+                    max_len_str = len(item[1])
                 selection_list.populate_list(item)
+            selection_list.config(width=max_len_str)
         else:
             selection_list.populate_list(selected_items)
-            selection_list.config(width=len(selected_items))
+            selection_list.config(width=len(selected_items[1]))
 
     def delete_selected_items(self):
         selection = self.list.curselection()
         for i in reversed(selection):
             self.list.delete(i)
+
+
+class SelectedList(ListViewer):
+    def __init__(self, master, **kw):
+        super().__init__(master, **kw)
+
+        self.print_btn = tk.Button(master, text="Print selection", command=self.print_selection)
+        self.delete_btn = tk.Button(master, text="Delete selection", command=self.delete_selected_items)
+
+        self.print_btn.grid(column=0, row=7, padx=(10, 1), sticky='nsew')
+        self.delete_btn.grid(column=1, row=7, sticky='nsew')
 
 
 class FolderInspector(tk.Frame):
@@ -141,8 +154,8 @@ class FolderInspector(tk.Frame):
 
         tk.Button(self, text='Search in DB', font=FONTS_SEARCH, fg='#57F',
                   command=self.search_in_db).grid(column=1, row=4, sticky='nsew')
-        tk.Button(self, text="Get all data from DB", font=FONTS_SEARCH, fg='#57F',
-                  command=self.get_paths_from_db).grid(column=0, row=4, padx=(10, 1), sticky='nsew')
+        tk.Button(self, text="Delete selected from DB", font=FONTS_SEARCH, fg='#57F',
+                  command=self.delete_selected_from_db).grid(column=0, row=4, padx=(10, 1), sticky='nsew')
 
     def on_entry_click(self, event):
         if self.entry.get() == 'Search str...':
@@ -170,7 +183,7 @@ class FolderInspector(tk.Frame):
         found_items = []
         search_str = self.search_str.get()
         for file_path in self.list.all_list_items():
-            if search_str.lower() in file_path.lower():
+            if search_str.lower() in file_path[1].lower():
                 found_items.append(file_path)
         self.list.clear_list()
         [self.list.populate_list(item) for item in found_items]
@@ -180,7 +193,8 @@ class FolderInspector(tk.Frame):
         search_str = self.search_str.get()
         self.list.clear_list()
         for item in db_search(search_str):
-            self.list.populate_list(str(item[0]))
+            item_id = item[0], str(item[1])
+            self.list.populate_list(item_id)
         self.counter_label.set(f'total files: {self.list.list_size()}')
 
     def save_list_to_db(self):
@@ -193,10 +207,15 @@ class FolderInspector(tk.Frame):
             insert_data(item)
         self.folder_path.set('items added')
 
-    def get_paths_from_db(self):
-        for item in db_search():
-            self.list.populate_list(str(item[0]))
-        self.counter_label.set(f'total files: {self.list.list_size()}')
+    def delete_selected_from_db(self):
+        selection = self.list.get_current_selection()
+        if isinstance(selection, list):
+            for item in selection:
+                db_delete_record(item[0])
+            self.folder_path.set(f'{len(selection)} items deleted')
+        if isinstance(selection, tuple):
+            self.folder_path.set('item deleted')
+            db_delete_record(selection[0])
 
 
 if __name__ == "__main__":
