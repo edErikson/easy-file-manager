@@ -1,7 +1,27 @@
 import os
 import subprocess
+from PyPDF2 import PdfFileReader
 
 notepad_path = r'C:\Program Files (x86)\Notepad++\notepad++.exe'
+
+
+def text_file_line_counter(file):
+    with open(file) as foo:
+        lines = len(foo.readlines())
+    print("lines:", lines)
+
+
+def pdf_page_counter(pdf_file):
+    try:
+        with open(pdf_file, "rb") as file:
+            pdf = PdfFileReader(file)
+            #info = pdf.getDocumentInfo()
+            pages = pdf.getNumPages()
+            return pages
+    except Exception as e:
+        print("Error occured", pdf_file)
+        print("with error : ", e)
+        return 0
 
 
 def get_file_list(dir_path):
@@ -17,6 +37,14 @@ def get_folder_counter(dir_path):
         folder_count += len(dirs)
         file_count += len(files)
     return folder_count, file_count
+
+
+def get_file_size(file_path):
+    return os.path.getsize(file_path)
+
+
+def get_file_name(file_path):
+    return os.path.basename(file_path)
 
 
 def open_path(file_path, notepad=False):
