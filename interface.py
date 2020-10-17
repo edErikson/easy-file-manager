@@ -1,8 +1,10 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from services import get_file_list, get_folder_counter, open_path
-from database import db_search, insert_data, first_time_db, db_delete_record
+from services import get_file_list, get_folder_counter, open_path, get_file_size, get_file_name
+from database import first_time_db, insert_data, insert_path_data, db_delete_record
+from database import get_table_names, create_table, db_search
+from distribution_module import distribution_module_app
 
 FONTS_FOLDER = ('Arial', 14)
 FONTS_SEARCH = ('Arial', 13)
@@ -17,19 +19,13 @@ class ListViewer(tk.Listbox):
         self.list = tk.Listbox(master, selectmode=tk.EXTENDED, yscrollcommand=self.scrollbar.set)
         self.list.config(height=20)
         self.scrollbar.config(command=self.list.yview)
-
         self.popup_menu = tk.Menu(self.list, tearoff=0)
         self.popup_menu.add_command(label='Open file location', command=self.open_path)
         self.popup_menu.add_command(label='Open file in Notepad', command=self.open_file_notepad)
+        self.popup_menu.add_command(label='Delete selected items', command=self.delete_selected_items)
         self.list.bind("<Button-3>", self.popup)
-
-        self.print_btn = tk.Button(master, text="Print selection", command=self.print_selection)
-        self.delete_btn = tk.Button(master, text="Delete selection", command=self.delete_selected_items)
-
         self.scrollbar.grid(column=3, row=5, sticky='nsew')
         self.list.grid(column=0, row=5, columnspan=2, padx=(10, 1), sticky='nsew')
-        self.print_btn.grid(column=0, row=6, padx=(10, 1), sticky='nsew')
-        self.delete_btn.grid(column=1, row=6, sticky='nsew')
 
     def list_size(self):
         return self.list.size()
@@ -71,38 +67,56 @@ class ListViewer(tk.Listbox):
             for path in file_path:
                 open_path(path[1], notepad=True)
 
-    def print_selection(self):
-        selected_items = self.get_current_selection()
-        top = tk.Toplevel()
-        selection_list = SelectedList(top)
-        selection_list.grid(column=0, row=5, sticky='nsew')
-
-        if isinstance(selected_items, list):
-            max_len_str = 60
-            for item in selected_items:
-                if len(item[1]) > max_len_str:
-                    max_len_str = len(item[1])
-                selection_list.populate_list(item)
-            selection_list.config(width=max_len_str)
-        else:
-            selection_list.populate_list(selected_items)
-            selection_list.config(width=len(selected_items[1]))
-
     def delete_selected_items(self):
-        selection = self.list.curselection()
-        for i in reversed(selection):
+        current_selection = self.list.curselection()
+        for i in reversed(current_selection):
             self.list.delete(i)
 
 
 class SelectedList(ListViewer):
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
+        self.creator_frame = tk.Frame(master)
+        self.creator_frame.grid()
+        self.print_btn = tk.Button(self.creator_frame, text="Create New Table", command=self.new_table)
+        self.table_name = tk.Entry(self.creator_frame)
+        self.add_data_btn = tk.Button(self.creator_frame, text="Add items to db", command=self.add_items_to_table)
+        self.info_label = tk.Label(self.creator_frame)
+        self.txt_label = tk.Label(self.creator_frame, text='existing dbs :')
+        self.choice_variable = tk.StringVar()
+        self.choice_variable.set('')
+        self.choice_variable.trace("w", self.choice_callback)
+        self.btn_choice = tk.OptionMenu(self.creator_frame, self.choice_variable, *get_table_names())
+        self.txt_label.grid(column=4, row=0)
+        self.btn_choice.grid(column=5, row=0)
 
-        self.print_btn = tk.Button(master, text="Print selection", command=self.print_selection)
-        self.delete_btn = tk.Button(master, text="Delete selection", command=self.delete_selected_items)
+        self.print_btn.grid(column=0, row=0)
+        self.table_name.grid(column=1, row=0)
+        self.add_data_btn.grid(column=2, row=0)
+        self.info_label.grid(column=3, row=0)
 
-        self.print_btn.grid(column=0, row=7, padx=(10, 1), sticky='nsew')
-        self.delete_btn.grid(column=1, row=7, sticky='nsew')
+    def choice_callback(self, *args):
+        print(self.choice_variable.get())
+        clean_name = self.choice_variable.get()[2:-3]
+        self.table_name.delete(0, tk.END)
+        self.table_name.insert(0, clean_name)
+
+    def new_table(self):
+        name = self.table_name.get()
+        print(self.list_size())
+        self.info_label['text'] = f'created {name} table'
+        self.info_label.config(fg="green")
+        create_table(name)
+
+    def add_items_to_table(self):
+        name = self.table_name.get()
+        errors = 0
+        try:
+            for item in self.all_list_items():
+                insert_data(item[0], get_file_name(item[1]), get_file_size(item[1]), table_name=name)
+        except FileNotFoundError:
+            errors += 1
+        self.info_label['text'] = f'{self.list_size()} items added and there was {errors} errors'
 
 
 class FolderInspector(tk.Frame):
@@ -157,6 +171,14 @@ class FolderInspector(tk.Frame):
         tk.Button(self, text="Delete selected from DB", font=FONTS_SEARCH, fg='#57F',
                   command=self.delete_selected_from_db).grid(column=0, row=4, padx=(10, 1), sticky='nsew')
 
+        self.print_btn = tk.Button(self, text="Selected items create or extend table ", command=self.print_selection)
+        self.delete_btn = tk.Button(self, text="Delete selection", command=self.delete_selected_items)
+        self.print_btn.grid(column=0, row=6, padx=(10, 1), sticky='nsew')
+        self.delete_btn.grid(column=1, row=6, sticky='nsew')
+
+        tk.Button(self, text="OPEN EXTENDED TABLES", font=FONTS_SEARCH, fg='#57F',
+                  command=distribution_module_app).grid(column=0, row=7, columnspan=2, padx=(10, 1), sticky='nsew')
+
     def on_entry_click(self, event):
         if self.entry.get() == 'Search str...':
             self.entry.delete(0, tk.END)
@@ -199,12 +221,12 @@ class FolderInspector(tk.Frame):
 
     def save_list_to_db(self):
         for file_path in self.list.all_list_items():
-            insert_data(file_path)
+            insert_path_data(file_path)
         self.folder_path.set('items added')
 
     def save_paths_to_db(self):
         for item in get_file_list(self.folder_path.get()):
-            insert_data(item)
+            insert_path_data(item)
         self.folder_path.set('items added')
 
     def delete_selected_from_db(self):
@@ -217,11 +239,31 @@ class FolderInspector(tk.Frame):
             self.folder_path.set('item deleted')
             db_delete_record(selection[0])
 
+    def print_selection(self):
+        selected_items = self.list.get_current_selection()
+        top = tk.Toplevel()
+        selection_list = SelectedList(top)
+        selection_list.grid(column=0, row=5, sticky='nsew')
+
+        if isinstance(selected_items, list):
+            max_len_str = 60
+            for item in selected_items:
+                if len(item[1]) > max_len_str:
+                    max_len_str = len(item[1])
+                selection_list.populate_list(item)
+            selection_list.config(width=max_len_str)
+        else:
+            selection_list.populate_list(selected_items)
+            selection_list.config(width=len(selected_items[1]))
+
+    def delete_selected_items(self):
+        self.list.delete_selected_items()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Folder Inspector")
     app = FolderInspector(root)
-    root.geometry("1200x560+300+300")
+    root.geometry("1200x580+300+300")
     root.resizable(True, False)
     root.mainloop()
