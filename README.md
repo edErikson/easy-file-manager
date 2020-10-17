@@ -19,7 +19,7 @@ Print files to list    - adds items to list without removing previous items
 
 Right click in list will open menu with some options 
 
-![](images\main_window.png)
+![](images/main_window.png)
 
 Selected items passed to create extended database table
 data - id, name, size
@@ -30,7 +30,7 @@ Steps:
 3. add items to db
 
 
-![](images\extended_table_creator.png)
+![](images/extended_table_creator.png)
 
 P.S. if choose from existing dbs then skip first 2
 
@@ -38,5 +38,5 @@ P.S. if choose from existing dbs then skip first 2
 in extended table can switch between created table and fill treeview with items
 inspect selected item - if .txt returned line count
                       - if .pdf returned page count
-![](images\extended_viewer.png)
+![](images/extended_viewer.png)
 
