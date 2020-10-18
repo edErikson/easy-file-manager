@@ -128,23 +128,23 @@ class App:
         if full_path[-4:] == ".pdf":
             pdf_info = pdf_page_counter(full_path)
             self.line_counter.set(pdf_info[0])
-            self.text_pdf_info.insert(tk.END, pdf_info[1])
-            self.text_pdf_info.insert(tk.END, '\n')
-        if full_path[-4:] == ".txt":
+            self.write_info_to_textfield(pdf_info[1])
+        if full_path[-4:] == ".txt" or full_path[-4:] == ".srt" or full_path[-4:] == ".vtt":
             total_lines = text_file_line_counter(full_path)
             self.line_counter.set(total_lines)
             for item in print_top(full_path):
-                self.text_pdf_info.insert(tk.END, item)
-                self.text_pdf_info.insert(tk.END, '\n')
+                self.write_info_to_textfield(item)
         if full_path[-4:] == ".png":
-            self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
-            self.text_pdf_info.insert(tk.END, '\n')
+            self.write_info_to_textfield(get_media_properties(full_path)[1])
         if full_path[-4:] == ".mp4":
-            self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
-            self.text_pdf_info.insert(tk.END, '\n')
+            self.write_info_to_textfield(get_media_properties(full_path)[1])
 
     def clear_text(self):
         self.text_pdf_info.delete("1.0", "end")
+
+    def write_info_to_textfield(self, item):
+        self.text_pdf_info.insert(tk.END, item)
+        self.text_pdf_info.insert(tk.END, '\n')
 
     def delete_tree(self):
         self.treeviewer.delete_tree()
