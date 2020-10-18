@@ -111,11 +111,12 @@ class SelectedList(ListViewer):
     def add_items_to_table(self):
         name = self.table_name.get()
         errors = 0
-        try:
-            for item in self.all_list_items():
+        for item in self.all_list_items():
+            try:
                 insert_data(item[0], get_file_name(item[1]), get_file_size(item[1]), table_name=name)
-        except FileNotFoundError:
-            errors += 1
+            except FileNotFoundError:
+                errors += 1
+                continue
         self.info_label['text'] = f'{self.list_size()} items added and there was {errors} errors'
 
 
