@@ -126,7 +126,6 @@ class App:
         full_path = get_item_path(item_id, table_name=clean_name)[0][0]
         if full_path[-4:] == ".pdf":
             pdf_info = pdf_page_counter(get_item_path(item_id, table_name=clean_name)[0][0])
-            print(pdf_info)
             self.line_counter.set(pdf_info[0])
             self.text_pdf_info.insert(tk.END, pdf_info[1])
             self.text_pdf_info.insert(tk.END, '\n')
@@ -134,7 +133,8 @@ class App:
             total_lines = text_file_line_counter(get_item_path(item_id, table_name=clean_name)[0][0])
             self.line_counter.set(total_lines)
         if full_path[-4:] == ".png":
-            print("picture detected by path : \n", full_path)
+            self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
+            self.text_pdf_info.insert(tk.END, '\n')
         if full_path[-4:] == ".mp4":
             self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
             self.text_pdf_info.insert(tk.END, '\n')
