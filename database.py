@@ -66,6 +66,16 @@ def get_item_path(data, table_name=''):
     return db_connection(sql, (data,), receive=True)
 
 
+def sorted_name(table_name=''):
+    sql_query = "SELECT id, name, size FROM %s ORDER BY name ASC" % table_name
+    return db_connection(sql_query, receive=True)
+
+
+def sorted_size(table_name=''):
+    sql_query = "SELECT id, name, size FROM %s ORDER BY size DESC" % table_name
+    return db_connection(sql_query, receive=True)
+
+
 def db_search(search_str=''):
     search_sql = "SELECT id, file_path FROM file_paths WHERE file_path LIKE'%%%s%%'" % search_str
     return db_connection(search_sql, receive=True)
