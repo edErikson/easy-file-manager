@@ -150,6 +150,8 @@ class App:
         global table
         table = self.choice_variable.get()
         clean_name = table[2:-3]
+        item_count = len(get_table_data(clean_name))
+        self.line_counter.set(item_count)
         return [self.treeviewer.tree.insert('', 'end', values=row) for row in get_table_data(clean_name)]
 
 
