@@ -1,7 +1,7 @@
 from database import get_table_names, get_table_data, get_item_path, sorted_name, sorted_size
 import tkinter as tk
 from tkinter import ttk
-from services import open_path, pdf_page_counter, text_file_line_counter
+from services import open_path, pdf_page_counter, text_file_line_counter, get_media_properties
 
 table = ''
 
@@ -133,6 +133,11 @@ class App:
         if full_path[-4:] == ".txt":
             total_lines = text_file_line_counter(get_item_path(item_id, table_name=clean_name)[0][0])
             self.line_counter.set(total_lines)
+        if full_path[-4:] == ".png":
+            print("picture detected by path : \n", full_path)
+        if full_path[-4:] == ".mp4":
+            self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
+            self.text_pdf_info.insert(tk.END, '\n')
 
     def clear_text(self):
         self.text_pdf_info.delete("1.0", "end")
