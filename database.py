@@ -46,9 +46,9 @@ def get_table_data(table_name=''):
         return db_connection(sql_query, receive=True)
 
 
-def insert_data(id, name, size, table_name=''):
+def insert_data(item_id, name, size, table_name=''):
     sql_query = "INSERT OR IGNORE INTO %s(id, name, size) VALUES (?, ?, ?)" % table_name
-    db_connection(sql_query, (id, name, size,))
+    db_connection(sql_query, (item_id, name, size,))
 
 
 def create_table(table_name=''):

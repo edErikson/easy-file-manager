@@ -8,7 +8,7 @@ notepad_path = r'C:\Program Files (x86)\Notepad++\notepad++.exe'
 
 def get_media_properties(filename):
     result = subprocess.Popen(['hachoir-metadata', filename, '--raw', '--level=7'],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     results = result.stdout.read().decode('utf-8').split('\r\n')
     properties = {}
     for item in results:

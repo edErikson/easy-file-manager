@@ -77,6 +77,7 @@ class BasicTreeviewer(ttk.Treeview):
         clean_name = table[2:-3]
         return [self.tree.insert('', 'end', values=row) for row in sorted_size(clean_name)]
 
+
 class App:
     """ main class for the application """
     def __init__(self, master):
