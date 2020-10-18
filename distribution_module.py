@@ -12,14 +12,14 @@ class BasicTreeviewer(ttk.Treeview):
         self.columns = table_columns
         ttk.Treeview.__init__(self, master)
 
-        self.tree = ttk.Treeview(self, columns=self.columns, height=25, show='headings')
+        self.tree = ttk.Treeview(self, columns=self.columns, height=15, show='headings')
 
         style = ttk.Style()
         style.configure("Treeview.Heading", font=(None, 10))
 
-        self.tree.column('id', width=35, anchor=tk.W)
-        self.tree.column('name', width=580, anchor=tk.W)
-        self.tree.column('size', width=105, anchor=tk.W)
+        self.tree.column('id', width=39, anchor=tk.W)
+        self.tree.column('name', width=400, anchor=tk.W)
+        self.tree.column('size', width=95, anchor=tk.W)
 
         self.tree.heading('id', text='id')
         self.tree.heading('name', text='name')
@@ -72,6 +72,7 @@ class App:
         self.mainframe = ttk.Frame(master)
         self.topframe = ttk.Frame(self.mainframe, style="BW.TLabel")
         self.centerframe = ttk.Frame(self.mainframe)
+        self.bottomframe = ttk.Frame(self.mainframe, borderwidth=2, relief="groove")
 
         self.columns = ['id', 'name', 'size']
         self.treeviewer = BasicTreeviewer(self.centerframe, table_columns=self.columns)
@@ -87,9 +88,21 @@ class App:
         self.btn_inspect.pack(side=tk.LEFT)
         self.btn_delete.pack(side=tk.LEFT)
 
+        self.line_counter = tk.StringVar()
+        self.lbl_file_info = tk.Label(self.bottomframe, text='File info frame :')
+        self.lbl_line_counter = tk.Label(self.bottomframe, textvariable=self.line_counter, font=('Arial', 15))
+        self.btn_delete = tk.Button(self.bottomframe, text='Clear Text', command=self.clear_text)
+        self.text_pdf_info = tk.Text(self.bottomframe, font=('Arial', 10), height=4)
+
+        self.lbl_file_info.grid(column=0, row=0, sticky='nsew')
+        self.lbl_line_counter.grid(column=0, row=1)
+        self.btn_delete.grid(column=1, row=1)
+        self.text_pdf_info.grid(column=0, row=2, columnspan=2)
+
         self.topframe.pack(side=tk.TOP, fill=tk.X)
         self.centerframe.pack(side=tk.TOP)
         self.mainframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+        self.bottomframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
 
     def inspect_item(self):
         item_id = self.treeviewer.selected_item_id.get()
@@ -98,9 +111,17 @@ class App:
         clean_name = table[2:-3]
         full_path = get_item_path(item_id, table_name=clean_name)[0][0]
         if full_path[-4:] == ".pdf":
-            print(pdf_page_counter(get_item_path(item_id, table_name=clean_name)[0][0]))
+            pdf_info = pdf_page_counter(get_item_path(item_id, table_name=clean_name)[0][0])
+            print(pdf_info)
+            self.line_counter.set(pdf_info[0])
+            self.text_pdf_info.insert(tk.END, pdf_info[1])
+            self.text_pdf_info.insert(tk.END, '\n')
         if full_path[-4:] == ".txt":
-            text_file_line_counter(get_item_path(item_id, table_name=clean_name)[0][0])
+            total_lines = text_file_line_counter(get_item_path(item_id, table_name=clean_name)[0][0])
+            self.line_counter.set(total_lines)
+
+    def clear_text(self):
+        self.text_pdf_info.delete("1.0", "end")
 
     def delete_tree(self):
         self.treeviewer.delete_tree()
@@ -121,6 +142,6 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
     root.title("File Manager")
-    root.geometry("760x450+300+200")
+    root.geometry("560x520+300+200")
     root.resizable(True, False)
     root.mainloop()
