@@ -1,4 +1,4 @@
-from database import get_table_names, get_table_data, get_item_path
+from database import get_table_names, get_table_data, get_item_path, sorted_name, sorted_size
 import tkinter as tk
 from tkinter import ttk
 from services import open_path, pdf_page_counter, text_file_line_counter
@@ -22,8 +22,8 @@ class BasicTreeviewer(ttk.Treeview):
         self.tree.column('size', width=95, anchor=tk.W)
 
         self.tree.heading('id', text='id')
-        self.tree.heading('name', text='name')
-        self.tree.heading('size', text='size')
+        self.tree.heading('name', text='name', command=self.sort_by_name)
+        self.tree.heading('size', text='size', command=self.sort_by_size)
 
         self.tree.pack(side=tk.LEFT)
 
@@ -46,8 +46,11 @@ class BasicTreeviewer(ttk.Treeview):
     def selected_item(self, e):
         current_item = self.tree.focus()
         print(self.tree.item(current_item)['values'])
-        item_id = self.tree.item(current_item)['values'][0]
-        self.selected_item_id.set(item_id)
+        try:
+            item_id = self.tree.item(current_item)['values'][0]
+            self.selected_item_id.set(item_id)
+        except IndexError:
+            pass
 
     def delete_tree(self):
         [self.tree.delete(i) for i in self.tree.get_children()]
@@ -62,6 +65,17 @@ class BasicTreeviewer(ttk.Treeview):
         clean_name = table[2:-3]
         open_path(get_item_path(file_id, table_name=clean_name)[0][0])
 
+    def sort_by_name(self):
+        self.delete_tree()
+        global table
+        clean_name = table[2:-3]
+        return [self.tree.insert('', 'end', values=row) for row in sorted_name(clean_name)]
+
+    def sort_by_size(self):
+        self.delete_tree()
+        global table
+        clean_name = table[2:-3]
+        return [self.tree.insert('', 'end', values=row) for row in sorted_size(clean_name)]
 
 class App:
     """ main class for the application """
@@ -80,7 +94,7 @@ class App:
 
         self.choice_variable = tk.StringVar()
         self.btn_fill = tk.Button(self.topframe, text='Fill tree', command=self.populate_tree)
-        self.btn_choice = tk.OptionMenu(self.topframe, self.choice_variable, *get_table_names())
+        self.btn_choice = tk.OptionMenu(self.topframe, self.choice_variable, *get_table_names()[1:])
         self.btn_fill.pack(side=tk.LEFT)
         self.btn_choice.pack(side=tk.LEFT)
         self.btn_inspect = tk.Button(self.topframe, text='Inspect selected item', command=self.inspect_item)
