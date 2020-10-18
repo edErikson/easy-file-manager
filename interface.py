@@ -116,6 +116,7 @@ class SelectedList(ListViewer):
                 insert_data(item[0], get_file_name(item[1]), get_file_size(item[1]), table_name=name)
             except FileNotFoundError:
                 errors += 1
+                print(item)
                 continue
         self.info_label['text'] = f'{self.list_size()} items added and there was {errors} errors'
 
