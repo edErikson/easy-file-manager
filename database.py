@@ -6,7 +6,6 @@ sql_command_dict = {
     'first_sql': "CREATE TABLE IF NOT EXISTS file_paths(id integer primary key, file_path text not null unique)",
     'add_data_sql': "INSERT OR IGNORE INTO file_paths(file_path) VALUES (?)",
     'table_name_sql': "SELECT name FROM sqlite_master where type='table'",
-    'column_name_sql': "PRAGMA table_info(file_paths)",
     'all_data': "SELECT file_path FROM file_paths",
     }
 
@@ -90,8 +89,9 @@ def get_table_names():
     return db_connection(sql_command_dict['table_name_sql'], receive=True)
 
 
-def get_column_names():
-    cursor = db_connection(sql_command_dict['column_name_sql'], receive=True)
+def all_table_columns(db_table):
+    sql = "PRAGMA table_info(%s)" % db_table
+    cursor = db_connection(sql, receive=True)
     names = list(map(lambda x: x[1], cursor))
     return tuple(names)
 
@@ -101,6 +101,6 @@ if __name__ == "__main__":
         print('No database detected, creating...')
         first_time_db()
     else:
-        print('database detected with, \nTable name: ')
-        print(db_connection(sql_command_dict['table_name_sql'], receive=True))
-        print('file_paths columns : ', get_column_names())
+        print('database detected with, \nTable names:  and columns ')
+        for table in db_connection(sql_command_dict['table_name_sql'], receive=True):
+            print(table[0], all_table_columns(table[0]))
