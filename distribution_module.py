@@ -1,7 +1,7 @@
 from database import get_table_names, get_table_data, get_item_path, sorted_name, sorted_size
 import tkinter as tk
 from tkinter import ttk
-from services import open_path, pdf_page_counter, text_file_line_counter, get_media_properties
+from services import open_path, pdf_page_counter, text_file_line_counter, get_media_properties, print_top
 
 table = ''
 
@@ -107,7 +107,7 @@ class App:
         self.lbl_file_info = tk.Label(self.bottomframe, text='File info frame :')
         self.lbl_line_counter = tk.Label(self.bottomframe, textvariable=self.line_counter, font=('Arial', 15))
         self.btn_delete = tk.Button(self.bottomframe, text='Clear Text', command=self.clear_text)
-        self.text_pdf_info = tk.Text(self.bottomframe, font=('Arial', 10), height=4)
+        self.text_pdf_info = tk.Text(self.bottomframe, font=('Arial', 10), height=8)
 
         self.lbl_file_info.grid(column=0, row=0, sticky='nsew')
         self.lbl_line_counter.grid(column=0, row=1)
@@ -126,13 +126,16 @@ class App:
         clean_name = table[2:-3]
         full_path = get_item_path(item_id, table_name=clean_name)[0][0]
         if full_path[-4:] == ".pdf":
-            pdf_info = pdf_page_counter(get_item_path(item_id, table_name=clean_name)[0][0])
+            pdf_info = pdf_page_counter(full_path)
             self.line_counter.set(pdf_info[0])
             self.text_pdf_info.insert(tk.END, pdf_info[1])
             self.text_pdf_info.insert(tk.END, '\n')
         if full_path[-4:] == ".txt":
-            total_lines = text_file_line_counter(get_item_path(item_id, table_name=clean_name)[0][0])
+            total_lines = text_file_line_counter(full_path)
             self.line_counter.set(total_lines)
+            for item in print_top(full_path):
+                self.text_pdf_info.insert(tk.END, item)
+                self.text_pdf_info.insert(tk.END, '\n')
         if full_path[-4:] == ".png":
             self.text_pdf_info.insert(tk.END, get_media_properties(full_path)[1])
             self.text_pdf_info.insert(tk.END, '\n')
