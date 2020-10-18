@@ -8,16 +8,16 @@ notepad_path = r'C:\Program Files (x86)\Notepad++\notepad++.exe'
 def text_file_line_counter(file):
     with open(file) as foo:
         lines = len(foo.readlines())
-    print("lines:", lines)
+    return "lines:", lines
 
 
 def pdf_page_counter(pdf_file):
     try:
         with open(pdf_file, "rb") as file:
             pdf = PdfFileReader(file)
-            #info = pdf.getDocumentInfo()
-            pages = pdf.getNumPages()
-            return pages
+            info = pdf.getDocumentInfo()
+            pages = "total pages " + str(pdf.getNumPages())
+            return pages, info
     except Exception as e:
         print("Error occured", pdf_file)
         print("with error : ", e)
