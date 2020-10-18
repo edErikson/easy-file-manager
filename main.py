@@ -6,7 +6,7 @@ def launcher():
     root = tk.Tk()
     root.title("Folder Inspector")
     FolderInspector(root)
-    root.geometry("900x535+300+300")
+    root.geometry("900x580+300+300")
     root.resizable(True, False)
     root.mainloop()
 
