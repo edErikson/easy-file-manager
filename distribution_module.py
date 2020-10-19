@@ -99,6 +99,9 @@ class App:
         self.btn_choice.pack(side=tk.LEFT)
         self.btn_inspect = tk.Button(self.topframe, text='Inspect selected item', command=self.inspect_item)
         self.btn_delete = tk.Button(self.topframe, text='Delete Tree', command=self.delete_tree)
+        self.item_count = tk.StringVar()
+        self.lbl_item_count = tk.Label(self.topframe, textvariable=self.item_count)
+        self.lbl_item_count.pack(side=tk.RIGHT)
         self.btn_inspect.pack(side=tk.LEFT)
         self.btn_delete.pack(side=tk.LEFT)
 
@@ -134,9 +137,9 @@ class App:
             for item in print_top(full_path):
                 self.write_info_to_textfield(item)
         if full_path[-4:] == ".png":
-            self.write_info_to_textfield(get_media_properties(full_path)[1])
+            self.write_info_to_textfield(get_media_properties(full_path))
         if full_path[-4:] == ".mp4":
-            self.write_info_to_textfield(get_media_properties(full_path)[1])
+            self.write_info_to_textfield(get_media_properties(full_path))
 
     def clear_text(self):
         self.text_pdf_info.delete("1.0", "end")
@@ -146,6 +149,7 @@ class App:
         self.text_pdf_info.insert(tk.END, '\n')
 
     def delete_tree(self):
+        self.item_count.set('0')
         self.treeviewer.delete_tree()
 
     def populate_tree(self):
@@ -153,7 +157,7 @@ class App:
         table = self.choice_variable.get()
         clean_name = table[2:-3]
         item_count = len(DbFunctions.get_table_data(clean_name))
-        self.line_counter.set(item_count)
+        self.item_count.set(item_count)
         return [self.treeviewer.tree.insert('', 'end', values=row) for row in DbFunctions.get_table_data(clean_name)]
 
 
