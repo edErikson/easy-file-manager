@@ -1,4 +1,4 @@
-from database import get_table_names, get_table_data, get_item_path, sorted_name, sorted_size
+from database import DbFunctions, get_table_names
 import tkinter as tk
 from tkinter import ttk
 from services import open_path, pdf_page_counter, text_file_line_counter, get_media_properties, print_top
@@ -45,7 +45,6 @@ class BasicTreeviewer(ttk.Treeview):
 
     def selected_item(self, e):
         current_item = self.tree.focus()
-        print(self.tree.item(current_item)['values'])
         try:
             item_id = self.tree.item(current_item)['values'][0]
             self.selected_item_id.set(item_id)
@@ -63,19 +62,19 @@ class BasicTreeviewer(ttk.Treeview):
         item = self.tree.selection()[0]
         file_id, file, *args = self.tree.item(item, "value")
         clean_name = table[2:-3]
-        open_path(get_item_path(file_id, table_name=clean_name)[0][0])
+        open_path(DbFunctions.get_item_path(file_id, table_name=clean_name)[0][0])
 
     def sort_by_name(self):
         self.delete_tree()
         global table
         clean_name = table[2:-3]
-        return [self.tree.insert('', 'end', values=row) for row in sorted_name(clean_name)]
+        return [self.tree.insert('', 'end', values=row) for row in DbFunctions.sorted_name(clean_name)]
 
     def sort_by_size(self):
         self.delete_tree()
         global table
         clean_name = table[2:-3]
-        return [self.tree.insert('', 'end', values=row) for row in sorted_size(clean_name)]
+        return [self.tree.insert('', 'end', values=row) for row in DbFunctions.sorted_size(clean_name)]
 
 
 class App:
@@ -124,7 +123,7 @@ class App:
         global table
         table = self.choice_variable.get()
         clean_name = table[2:-3]
-        full_path = get_item_path(item_id, table_name=clean_name)[0][0]
+        full_path = DbFunctions.get_item_path(item_id, table_name=clean_name)[0][0]
         if full_path[-4:] == ".pdf":
             pdf_info = pdf_page_counter(full_path)
             self.line_counter.set(pdf_info[0])
@@ -153,9 +152,9 @@ class App:
         global table
         table = self.choice_variable.get()
         clean_name = table[2:-3]
-        item_count = len(get_table_data(clean_name))
+        item_count = len(DbFunctions.get_table_data(clean_name))
         self.line_counter.set(item_count)
-        return [self.treeviewer.tree.insert('', 'end', values=row) for row in get_table_data(clean_name)]
+        return [self.treeviewer.tree.insert('', 'end', values=row) for row in DbFunctions.get_table_data(clean_name)]
 
 
 def distribution_module_app():
