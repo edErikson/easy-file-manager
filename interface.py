@@ -2,8 +2,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from services import get_file_list, get_folder_counter, open_path, get_file_size, get_file_name
-from database import first_time_db, insert_data, insert_path_data, db_delete_record
-from database import get_table_names, create_table, db_search
+from database import MainDatabase, ExtraDatabase,  get_table_names
 from distribution_module import distribution_module_app
 
 FONTS_FOLDER = ('Arial', 14)
@@ -96,24 +95,22 @@ class SelectedList(ListViewer):
         self.info_label.grid(column=3, row=0)
 
     def choice_callback(self, *args):
-        print(self.choice_variable.get())
         clean_name = self.choice_variable.get()[2:-3]
         self.table_name.delete(0, tk.END)
         self.table_name.insert(0, clean_name)
 
     def new_table(self):
         name = self.table_name.get()
-        print(self.list_size())
         self.info_label['text'] = f'created {name} table'
         self.info_label.config(fg="green")
-        create_table(name)
+        ExtraDatabase.create_table(name)
 
     def add_items_to_table(self):
         name = self.table_name.get()
         errors = 0
         for item in self.all_list_items():
             try:
-                insert_data(item[0], get_file_name(item[1]), get_file_size(item[1]), table_name=name)
+                ExtraDatabase.insert_data(item[0], get_file_name(item[1]), get_file_size(item[1]), table_name=name)
             except FileNotFoundError:
                 errors += 1
                 print(item)
@@ -135,7 +132,7 @@ class FolderInspector(tk.Frame):
 
         if not os.path.isfile("folder.db"):
             self.folder_path.set('Select folder to get all file paths')
-            first_time_db()
+            MainDatabase.first_time_db()
         else:
             self.folder_path.set('Database detected')
 
@@ -216,30 +213,30 @@ class FolderInspector(tk.Frame):
     def search_in_db(self):
         search_str = self.search_str.get()
         self.list.clear_list()
-        for item in db_search(search_str):
+        for item in MainDatabase.db_search(search_str):
             item_id = item[0], str(item[1])
             self.list.populate_list(item_id)
         self.counter_label.set(f'total files: {self.list.list_size()}')
 
     def save_list_to_db(self):
         for file_path in self.list.all_list_items():
-            insert_path_data(file_path)
+            MainDatabase.insert_path_data(file_path)
         self.folder_path.set('items added')
 
     def save_paths_to_db(self):
         for item in get_file_list(self.folder_path.get()):
-            insert_path_data(item)
+            MainDatabase.insert_path_data(item)
         self.folder_path.set('items added')
 
     def delete_selected_from_db(self):
         selection = self.list.get_current_selection()
         if isinstance(selection, list):
             for item in selection:
-                db_delete_record(item[0])
+                MainDatabase.db_delete_record(item[0])
             self.folder_path.set(f'{len(selection)} items deleted')
         if isinstance(selection, tuple):
             self.folder_path.set('item deleted')
-            db_delete_record(selection[0])
+            MainDatabase.db_delete_record(selection[0])
 
     def print_selection(self):
         selected_items = self.list.get_current_selection()
